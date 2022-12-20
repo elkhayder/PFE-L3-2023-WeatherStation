@@ -1,0 +1,11 @@
+##Node
+- ID: Numeric or String
+- Title: String
+- Sensors: Array
+	- Humidity
+	- Temperature
+	- Wind (Speed, Direction)
+- Data: Array
+	- Sensor
+	- Value(s)
+	- Timestamp
