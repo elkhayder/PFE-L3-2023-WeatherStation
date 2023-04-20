@@ -1,0 +1,10 @@
+{
+   "files.associations": {
+      ".env.*": "env",
+      "*.tcc": "cpp",
+      "istream": "cpp",
+      "ostream": "cpp",
+      "random": "cpp",
+      "string": "cpp"
+   }
+}
