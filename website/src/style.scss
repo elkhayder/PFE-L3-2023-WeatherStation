@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body,
+#app,
+main {
+   @apply min-h-screen;
+}
+
+// Custom Scroll
+::-webkit-scrollbar {
+   width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+   background: #bdbdbd;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+   background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+   background: #555;
+}
