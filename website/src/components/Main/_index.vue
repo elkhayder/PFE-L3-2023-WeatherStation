@@ -198,8 +198,9 @@ const changeSelectedNode = (node: string) => {
 
 const chartData = computed((): ChartData<"line"> => {
    const withoutTime = (d: Date) => {
-      d.setHours(0, 0, 0, 0);
-      return d;
+      const newd = new Date(d);
+      newd.setHours(0, 0, 0, 0);
+      return newd;
    };
    const data = selectedNodeMeasures.value
       .filter((x) => x.measure == selectedMeasureType.value)
