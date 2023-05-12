@@ -1,21 +1,18 @@
 #include "WiFi.h"
+#include "helpers.h"
 
-namespace Custom
+namespace Custom::WiFi
 {
+        uint8_t _status = WL_IDLE_STATUS;
+        Poll _status_poll(10 * 60 * 1000);
+        IPAddress local_ip = IPAddress(0, 0, 0, 0);
 
-        uint8_t WiFi::_status = WL_IDLE_STATUS;
-        Poll WiFi::_status_poll(10 * 60 * 1000);
-        IPAddress WiFi::local_ip = IPAddress(0, 0, 0, 0);
-
-        void WiFi::setup()
+        void setup()
         {
                 if (::WiFi.status() == WL_NO_MODULE)
                 {
 
-                        Serial.println(F("No WiFi Module detected"));
-
-                        while (true)
-                                ;
+                        errHalt(F("WiFi"), F("Module not found"));
                 }
 
                 String fv = ::WiFi.firmwareVersion();
@@ -26,7 +23,7 @@ namespace Custom
                 connect();
         }
 
-        void WiFi::loop()
+        void loop()
         {
                 if (!_status_poll.shouldExecute())
                         return;
@@ -35,7 +32,7 @@ namespace Custom
                 _status_poll.setExecuted();
         }
 
-        void WiFi::verifyConnectionStatus()
+        void verifyConnectionStatus()
         {
                 _status = ::WiFi.status();
 
@@ -55,13 +52,12 @@ namespace Custom
                 }
         }
 
-        void WiFi::connect()
+        void connect()
         {
                 while (_status != WL_CONNECTED)
                 {
-
-                        Serial.print(F("Connecting to WiFi: "));
-                        Serial.print(_ssid);
+                        LCD::clearLine(0);
+                        LCD::printStringCenter("Connecting to WiFi", 0);
 
                         _status = ::WiFi.begin(_ssid, _password);
 
@@ -69,10 +65,8 @@ namespace Custom
                 }
                 local_ip = ::WiFi.localIP();
 
-                Serial.println(F("WIFI Connected"));
-                Serial.print(F("Local IP: "));
-                Serial.println(local_ip);
-                Serial.print(F("RSSI: "));
-                Serial.println(::WiFi.RSSI());
+                LCD::clearLine(0);
+                LCD::_instance.print("IP: ");
+                LCD::_instance.print(local_ip);
         }
 }

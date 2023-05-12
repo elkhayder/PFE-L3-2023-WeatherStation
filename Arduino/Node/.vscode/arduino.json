@@ -1,0 +1,8 @@
+{
+    "configuration": "cpu=atmega328",
+    "board": "arduino:avr:nano",
+    "port": "COM9",
+    "output": "./build",
+    "sketch": "Node.ino",
+    "programmer": "arduinoisp"
+}

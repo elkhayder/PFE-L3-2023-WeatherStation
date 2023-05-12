@@ -1,37 +1,23 @@
 #include "Server.h"
 
-namespace Custom
+namespace Custom::Server
 {
-    String Server::STATIC_FOLDER = F("website");
-    WiFiServer Server::_server(80);
-    Application Server::_app = Application();
-    const struct ExtMime Server::MIMES[] PROGMEM = {
-        {F("html"), F("text/html")},
-        {F("css"), F("text/css")},
-        {F("js"), F("text/javascript")},
-        {F("png"), F("image/png")},
-        {F("jpeg"), F("image/jpeg")},
-        {F("jpg"), F("image/jpg")},
-        {F("svg"), F("image/svg+xml")},
-    };
 
-    void Server::setup()
+    String STATIC_FOLDER = F("website");
+    WiFiServer _server(80);
+    Application _app;
+
+    void setup()
     {
-
-        Serial.println(F("Initiating Server"));
 
         _server.begin();
 
-        // Register routes
-
-        _app.get("/", &RequestHandlers::index); // Index page
-        for (size_t i = 0; i < Storage::files_count; i++)
-        {
-            _app.get(Storage::files[i], &RequestHandlers::file); // SD files
-        }
+        _app.get("/api/db", &RequestHandlers::db);
+        _app.get(&RequestHandlers::staticFiles);
+        _app.get("/", &RequestHandlers::index);
     }
 
-    void Server::loop()
+    void loop()
     {
         WiFiClient client = _server.available();
         if (client.available())
@@ -41,7 +27,7 @@ namespace Custom
         }
     }
 
-    const String *Server::fileContentType(String *filename)
+    const String *fileContentType(String *filename)
     {
 
         for (int i = 0; i < sizeof(MIMES); i++)
@@ -62,23 +48,56 @@ namespace Custom
             file(req, res, "index.html");
         }
 
-        void file(Request &req, Response &res)
+        void staticFiles(Request &req, Response &res)
         {
-            file(req, res, req.path());
+            if (strlen(req.path()) == 1) // "/"
+            {
+                return file(req, res, "/index.html");
+            }
+
+            return file(req, res, req.path());
+        }
+
+        void db(Request &req, Response &res)
+        {
+            Serial.println("db");
+            File file = Storage::sd.open("db.csv");
+
+            if (!file)
+            {
+                // res.sendStatus(404);
+                return;
+            }
+
+            // res.set("Content-Type", "text/csv");
+
+            while (file.available())
+            {
+                res.write(file.read());
+            }
+
+            file.close();
+
+            res.end();
         }
 
         void file(Request &req, Response &res, const char *filename)
         {
-            String filepath = Server::STATIC_FOLDER + "/" + filename;
+            String filepath = Server::STATIC_FOLDER + filename;
 
             if (!Storage::sd.exists(filepath))
             {
-                Serial.println(F("File not found"));
                 res.sendStatus(404);
                 return;
             }
 
             File file = Storage::sd.open(filepath);
+
+            if (file.isDirectory())
+            {
+                res.sendStatus(403);
+                return;
+            }
 
             const String *contentType = Server::fileContentType(&filepath);
 
@@ -91,6 +110,8 @@ namespace Custom
             {
                 res.write(file.read());
             }
+
+            res.end();
 
             file.close();
             return;

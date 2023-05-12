@@ -60,7 +60,12 @@ const rtf = new Intl.RelativeTimeFormat("en", {
 });
 
 const formatTime = (time: string): Date => {
-   return new Date(new Date().toLocaleString().split(", ")[0] + " " + time);
+   return new Date(
+      new Date(
+         new Date().toLocaleString().split(", ")[0] + " " + time
+      ).getTime() +
+         2 * 60 * 60 * 1000
+   );
 };
 
 const relativeTime = (time: Date): string => {

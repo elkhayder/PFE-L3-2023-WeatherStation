@@ -25,7 +25,9 @@ export const useDBStore = defineStore("db", {
                         return {
                            node: splitted[0],
                            measure: splitted[1],
-                           value: +splitted[2],
+                           value:
+                              +splitted[2] /
+                              (splitted[1] === "Pressure" ? 100 : 1),
                            date: new Date(+splitted[3] * 1000),
                         };
                      })

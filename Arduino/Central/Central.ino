@@ -1,40 +1,46 @@
-#define DEBUG 1
-
 #include "src/WiFi.h"
 #include "src/Server.h"
 #include "src/Clock.h"
 #include "src/Storage.h"
+#include "src/LCD.h"
+#include "src/Lora.h"
 
-const char *Custom::WiFi::_ssid = "TestNetwork";
-const char *Custom::WiFi::_password = "00000000";
+using namespace Custom;
+
+// TODO read these values from storage
+const char *WiFi::_ssid = "TestNetwork";
+const char *WiFi::_password = "00000000";
 
 void setup()
 {
     Serial.begin(115200);
 
-    Serial.println(F("Type anything to start"));
+    // while (!Serial)
+    //     yield();
 
-    while (!Serial.available())
-    {
-        yield();
-    }
+    // LCD
+    LCD::setup();
 
     // Storage
-    Custom::Storage::setup();
+    Storage::setup();
+
+    // LoRa
+    Lora::setup();
 
     // WiFi
-    Custom::WiFi::setup();
+    WiFi::setup();
 
     // Server
     Custom::Server::setup();
 
     // Clock
-    Custom::Clock::fetch();
+    Clock::fetch();
 }
 
 void loop()
 {
-    Custom::WiFi::loop();
+    // WiFi::loop();
     Custom::Server::loop();
-    Custom::Clock::loop();
+    Clock::loop();
+    Lora::loop();
 }

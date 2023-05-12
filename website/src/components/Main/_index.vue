@@ -2,8 +2,24 @@
    <section class="flex-[2_2_0%] h-screen overflow-y-auto">
       <div class="w-full p-8 flex justify-between">
          <div>
-            <h3 class="font-bold text-xl text-blue-950">January 2023</h3>
-            <h5 class="font-medium text-gray-500">Thursday Jan 04, 2023</h5>
+            <h3 class="font-bold text-xl text-blue-950">
+               {{
+                  Intl.DateTimeFormat("en-US", {
+                     month: "long",
+                     year: "numeric",
+                  }).format(new Date())
+               }}
+            </h3>
+            <h5 class="font-medium text-gray-500">
+               {{
+                  Intl.DateTimeFormat("en-US", {
+                     weekday: "long",
+                     month: "short",
+                     day: "2-digit",
+                     // year: "numeric",
+                  }).format(new Date())
+               }}
+            </h5>
          </div>
 
          <ul class="flex" role="tablist" v-if="data.length">

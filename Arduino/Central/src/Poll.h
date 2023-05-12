@@ -1,5 +1,5 @@
-#ifndef _POLL_H
-#define _POLL_H
+#ifndef _CUSTOM_POLL_H
+#define _CUSTOM_POLL_H
 
 #include <Arduino.h>
 

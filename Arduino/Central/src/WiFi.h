@@ -3,26 +3,21 @@
 
 #include <WiFiNINA.h>
 #include "Poll.h"
+#include "LCD.h"
 
-namespace Custom
+namespace Custom::WiFi
 {
-    class WiFi
-    {
 
-    public:
-        static void setup();
-        static void loop();
-        static void connect();
-        static void verifyConnectionStatus();
+    extern const char *_ssid, *_password; //  Should be designed in .ino file
 
-        static const char *_ssid, *_password;
+    extern uint8_t _status;
+    extern Poll _status_poll;
+    extern IPAddress local_ip;
 
-        static uint8_t _status;
-
-        static Poll _status_poll;
-
-        static IPAddress local_ip;
-    };
+    void setup();
+    void loop();
+    void connect();
+    void verifyConnectionStatus();
 
 }
 #endif

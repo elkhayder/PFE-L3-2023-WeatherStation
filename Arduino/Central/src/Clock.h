@@ -1,35 +1,34 @@
-#ifndef _CLOCK_H
-#define _CLOCK_H
+#ifndef _CUSTOM_CLOCK_H
+#define _CUSTOM_CLOCK_H
 
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
-#define LOGGING
 #include <ArduinoHttpClient.h>
+#include <RTClib.h>
 
 #include "Poll.h"
+#include "LCD.h"
 
-namespace Custom
+namespace Custom::Clock
 {
 
-    class Clock
-    {
+    extern uint32_t _unix_timestamp;
+    extern const uint16_t _HOST_PORT;
+    extern const String _HOST_NAME;
+    extern const String _PATH_NAME;
+    extern Custom::Poll _fetch_poll;   // 24 hours
+    extern Custom::Poll _display_poll; // 1s
+    extern WiFiClient _wifi;
+    extern HttpClient _client;
+    extern uint32_t _fetched_at;
+    extern uint32_t offset; // 2 hours in seconds
+    extern bool fetchedSuccess;
 
-    public:
-        static void setup();
-        static void loop();
-        static void fetch();
-        static uint32_t time();
-
-    private:
-        static const uint16_t _HOST_PORT;
-        static const String _HOST_NAME;
-        static const String _PATH_NAME;
-        static WiFiClient _wifi;
-        static HttpClient _client;
-        static Custom::Poll _poll;
-        static uint32_t _unix_timestamp;
-        static uint32_t _fetched_at;
-    };
+    void setup();
+    void loop();
+    void fetch();
+    uint32_t time();
+    void display();
 
 }
 #endif

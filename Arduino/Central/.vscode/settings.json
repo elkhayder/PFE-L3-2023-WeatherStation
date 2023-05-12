@@ -5,6 +5,11 @@
       "istream": "cpp",
       "ostream": "cpp",
       "random": "cpp",
-      "string": "cpp"
+      "string": "cpp",
+      "bitset": "cpp",
+      "memory": "cpp",
+      "fstream": "cpp",
+      "sstream": "cpp",
+      "streambuf": "cpp"
    }
 }

@@ -11,8 +11,8 @@ export const DateFormatter = Intl.DateTimeFormat("fr-FR", {
 
 export const UNIT = (type: string) => {
    const filter = [
-      ["Temperature", "Km/h"],
-      ["Pressure", "Pa"],
+      ["Temperature", "°C"],
+      ["Pressure", "hPa"],
       ["Humidity", "%"],
    ].find((x) => x[0] == type);
    return filter ? filter[1] : null;

@@ -1,15 +1,16 @@
-#ifndef _STORAGE_H
-#define _STORAGE_H
+#ifndef _CUSTOM_STORAGE_H
+#define _CUSTOM_STORAGE_H
 
 #include <SPI.h>
 #include <SdFat.h>
+#include <ArduinoJson.h>
 
 #include "WiFi.h"
+#include "Clock.h"
 
-#define FILES_LIST_CAPACITY 20
-#define FILE_NAME_CAPACITY 64
+#define SD_CS_PIN 7
 
-namespace Custom
+namespace Custom::Storage
 {
     typedef struct FileDescription
     {
@@ -17,17 +18,9 @@ namespace Custom
         size_t size;
     } FileDescription;
 
-    class Storage
-    {
-    public:
-        static size_t files_count;
-        static char files[FILES_LIST_CAPACITY][FILE_NAME_CAPACITY];
-        static SdFat sd;
+    extern SdFat sd;
 
-        static void setup();
-        static int mem();
-        static void readFolderContent(File dir, String prefix);
-    };
+    void setup();
 }
 
 #endif
