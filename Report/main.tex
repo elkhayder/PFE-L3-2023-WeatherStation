@@ -1,0 +1,157 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for inserting images
+\usepackage{float} % For figures palcement
+\usepackage[a4paper, margin=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{setspace} % to change line spacing
+\usepackage{eurosym} % Euro symbol
+\usepackage[hidelinks]{hyperref} % for links
+\usepackage{multirow} % To span table column in multiples rows
+\usepackage{textcomp} % for extra symbols like registred and copyrighted
+\usepackage[pdftex,dvipsnames,table]{xcolor} % for text coloring
+\usepackage{svg}  % SVG images
+\usepackage{subcaption} % For subcaptions
+\usepackage{glossaries} % Acronyms and glossaries
+\usepackage{listings}
+\usepackage{color}
+\usepackage{minted}
+\setminted{
+    linenos=true,
+    autogobble,
+    frame=single,
+               framesep=3mm,
+               xleftmargin=21pt,
+               tabsize=4, fontsize=\small, breaklines
+}
+\newenvironment{code}{\vspace{0.5cm}\captionsetup{type=listing}}{}
+
+
+
+% TODO text
+\usepackage{xargs} % Use more than one optional parameter in a new commands
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+
+
+\renewcommand{\baselinestretch}{1.5} % Line height
+\setlength{\parindent}{0pt} % Remove indent
+\def\arraystretch{1.3} % Change default table padding from 1 to 1.3
+
+
+\title{Rapport PFE L3 - Weather Station}
+\author{ZAKARIA EL KHAYDER}
+\date{April 2023}
+
+\input{glossaries}
+
+\newcounter{romancounter} % Counter to save Roman numbers count
+
+\begin{document}
+
+\makeatletter
+\begin{titlepage}
+\begin{center}
+    
+\includegraphics[width=7cm]{images/faculty_logo.png}
+\\[1cm]
+\textbf{\large{
+    Faculty of Physics and Engineering \\
+    University of Starsbourg 
+}}
+
+\vfill
+
+\large{
+\textbf{End of studies' project} \\[14pt]
+Bachelor in Electronic Systems
+}
+
+\textbf{\large{
+Weather Station: Central
+}}
+
+\vfill
+
+\includegraphics[width=.8\textwidth]{images/website/inspiration_bg.png}
+
+\vfill
+
+\textbf{Carried out by:}\\
+EL KHAYDER Zakaria \\
+OUFASKI Nouhaila \\
+FRIES Léo
+
+\vfill
+
+\large{
+    2022-2023
+    \\[4pt]
+    Made with \LaTeX
+}
+
+
+\end{center}
+\end{titlepage}
+\makeatother
+\newpage
+
+% Table of contents, figures & Tables
+\pagenumbering{Roman}
+
+\renewcommand{\contentsname}{Table of Contents} % Change title
+\tableofcontents
+\addcontentsline{toc}{section}{Table of Contents}
+\newpage
+
+\listoffigures
+\addcontentsline{toc}{section}{List of Figures}
+\listoflistings
+\addcontentsline{toc}{section}{List of Listings}
+\listoftables
+\addcontentsline{toc}{section}{List of Tables}
+
+
+\cleardoublepage
+\setcounter{romancounter}{\arabic{page}} % Save counting
+% Begin content
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+\subsection{Presentation}
+The title of our project is: "weather station: central", which means that we will have to centralize several meteorological data acquired thanks to different sensors to a single place in which the user can use them for personal or professional use. We know that it is important to know several information about the weather in everyday life such as the temperature or the humidity level, indeed for personal use, the user may wish to know if he is beautiful in its garden in order to enjoy the outdoors, while for professional use, a company could be led to know the temperature in different rooms of its premises without wanting to go there.
+
+\subsection{Motivation}
+We decided to chose this subject for our project because it seemed to us to be something interesting to set up, requiring an electronic part using for example arduino cards, as well as a mechanical part having to protect the components from the weather.
+
+\input{chapters/Nodes}
+\input{chapters/Central}
+\input{chapters/Website}
+\input{chapters/ComponentsCasingProtection}
+
+\section{Conclusion}
+In conclusion, the development and implementation of our weather station project have proven to be a
+resounding success. Through the careful selection and integration of sensors, namely temperature, pressure,
+and wind, we have been able to gather accurate and comprehensive weather data. The use of Arduino Nano
+devices, strategically positioned in different locations, ensures reliable and consistent data collection from
+different spots. \\
+The adoption of LoRa communication has allowed for the seamless transmission of the collected information to the
+central system, where it is processed and stored for future analysis. This central enables easy access to 
+weather data through our website interface.
+Overall, this project serves as a testament to our team's dedication, technical skills, and problem-solving abilities. \\
+It has provided us with valuable hands-on experience in designing and implementing an effective project resulting
+a well-functioning weather station.
+
+
+\cleardoublepage
+% Glossaries & acronyms
+\pagenumbering{Roman}
+\setcounter{page}{\theromancounter}
+
+\printglossaries
+\addcontentsline{toc}{section}{Glossary}
+
+\end{document}

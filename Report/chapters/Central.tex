@@ -1,0 +1,538 @@
+\section{Central}
+The Central is the brain and muscles of our system, I
+t lives in the \textit{center} (fair enough), between the nodes and the user. It communicates with other nodes, gathers and processes data, hosts the server, and serves the web interface (HMI).\\
+For this type of project, Raspberry-PI is highly recommended for such a task since it is basically a tiny computer, we can easily set up and host a Database and a server to handle \acrfull{http} requests. Unfortunately, the only available Raspi in the faculty got stolen, and due to the global chip shortage, we couldn't order another one because they were often unavailable or, if we were lucky, unbelievably expensive (at least 150 \euro).\\
+Because of the above, the only option we had left was to use an Arduino for the Central. The task was already hard enough, but building it on an Arduino made it x10 harder. Nevertheless, we decided to go ahead with it, challenge ourselves, and learn something new.
+
+\subsection{Choice of parts \& material}
+\subsubsection{Arduino}
+The Arduino ecosystem is a vast ocean. There are around 25 official Arduino models, making the choice of the proper Arduino harder. So before choosing one, we should determine what we need first:
+\begin{itemize}
+    \item \textbf{Internet Connectivity}: Ethernet is acceptable, but WiFi is preferred. This module can be external.
+    \item \textbf{ROM \& SRAM}: The Central will have to execute some expensive processes, which makes RAM indispensable. ROM isn't as crucial as SRAM, we can always add external memory space if needed, which leads us to the next point.
+    \item \textbf{SD Card Reader}: Sensors data should be retrievable. We can also use an external module.
+\end{itemize}
+After research, we decided to go with \textbf{\href{https://docs.arduino.cc/hardware/mkr-wifi-1010}{Arduino MKR WiFi 1010}}. It responds to all of our requirements.
+\begin{itemize}
+    \item \textbf{Internet Connectivity}: Built-in \href{https://www.u-blox.com/en/product/nina-w10-series-open-cpu}{Nina W102 uBlox module}. Compatible with WiFi 802.11b/g/n \& Dual-mode Bluetooth v4.2.
+    \item \textbf{ROM \& SRAM}: With 32KB of SRAM, we believe it is more than enough to handle our internal request and process nodes' communication. And with 256KB Flash memory (ROM), we can comfortably upload our sketch without compromises.
+    \item \textbf{SD Card Reader}: Unfortunately, the MKR WiFi 1010 does not have an integrated SD Card Reader, but we can easily hook up an external module as stated before. 
+\end{itemize}
+\textcolor{red}{Attention:} One thing to keep in our mind is that Arduino MKR WiFi 1010 works with 3.3V logic level, anything above will damage the board
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \multirow{3}{*}{Board}  & Name & Arduino\textsuperscript{\tiny\textregistered} MKR WiFi 1010 \\\cline{2-3}
+                                & SKU & ABX00023 \\\cline{2-3}
+                                & Compatibility	& MKR \\\hline
+                                
+        Microcontroller & \multicolumn{2}{l|}{SAMD21 Cortex\textsuperscript{\tiny\textregistered}-M0+ 32bit low power ARM MCU} \\\hline
+        
+        USB connector   & \multicolumn{2}{l|}{Micro USB (USB-B)} \\\hline
+        
+        \multirow{6}{*}{Pins}   & Built-in LED Pin	& 6 \\\cline{2-3}
+                                & Digital I/O Pins	& 8 \\\cline{2-3}
+                                & Analog Input Pins	& 7 (ADC 8/10/12 bit) \\\cline{2-3}
+                                & Analog Output Pins & 1 (DAC 10 bit) \\\cline{2-3}
+                                & PMW Pins & 13 (0 - 8, 10, 12, A3, A4) \\\cline{2-3}
+                                & External interrupts & 10 (0, 1, 4, 5, 6, 7, 8 ,9, A1, A2) \\\hline
+                                
+        \multirow{3}{*}{Connectivity}   & Bluetooth\textsuperscript{\tiny\textregistered} & Nina W102 uBlox module \\\cline{2-3}
+                                        & Wi-Fi & Nina W102 uBlox module \\\cline{2-3}
+                                        & Secure element & ATECC508A \\\hline
+                                        
+        \multirow{3}{*}{Communication}  & UART & Yes \\\cline{2-3}
+                                        & I2C & Yes \\\cline{2-3}
+                                        & SPI & Yes \\\hline
+
+        
+        \multirow{5}{*}{Power}  & I/O Voltage & 3.3V \\\cline{2-3}
+                                & Input Voltage (nominal) & 5-7V \\\cline{2-3}
+                                & DC Current per I/O pin & 7 mA \\\cline{2-3}
+                                & Supported battery & Li-Po Single  Cell, 3.7V, 1024mAh Minimum \\\cline{2-3}
+                                & Battery connector & JST PH \\\hline
+                                
+        \multirow{2}{*}{Clock speed}    & Processor & 48 MHz \\\cline{2-3}
+                                        & RTC & 32.768 kHz \\\hline
+                    
+        \multirow{2}{*}{Memory} & SAMD21G18A & 256KB Flash, 32KB SRAM \\\cline{2-3}
+                                & Nina W102 uBlox module & 448 KB ROM, 520KB SRAM, 2MB Flash \\\hline
+                                
+        \multirow{3}{*}{Dimensions} & Weight & 32 g \\\cline{2-3}
+                                    & Width	& 25 mm \\\cline{2-3}
+                                    & Length & 61.5 mm \\\hline
+    \end{tabular}
+    \caption{Arduino MKR WiFi 1010 Specs}
+\end{table}
+
+\begin{figure}[H]
+    \hfill
+    \begin{minipage}{.45\textwidth}
+        \includesvg[width=.95\textwidth]{images/components/arduino_mkr.svg}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{.45\textwidth}
+        \includegraphics[width=\textwidth]{images/components/arduino_mkr.png}
+    \end{minipage}
+    \hfill
+    \caption{Arduino MKR WiFi 1010}
+\end{figure}
+
+
+\subsubsection{SD Card Reader}
+This one is more straightforward, we chose \href{https://digilent.com/shop/pmod-microsd-microsd-card-slot/}{Pmod MicroSD} for the simple reason of it being already available in the Faculty's inventory. Fortunately, it itself works with 3.3V logic level, which makes it compatible with Arduino MKR WiFi 1010 that we chose. In addition, it has many other impressive features:
+\begin{itemize}
+    \item Store and access large amounts of data from the host board
+    \item No limitation on the file system or memory size of microSD card used, which is great for reasons we will discuss later
+    \item 1-bit and 4-bit communication
+    \item 12-pin Pmod port with \textbf{SPI interface}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=.3\textwidth]{images/components/pmod_microsd_reader.png}
+    \caption{Pmod MicroSD Reader}
+\end{figure}
+
+\subsubsection{Display}
+We will be hosting the web interface on Arduino, and we will need the IP address to access the website. We can always find it out from the Router webpanel, but it would be easier for us and the user to know it without the hassle of searching for it elsewhere, here is where comes the need for a Display, besides, we can use it also to show other information such as WiFi connection Status \& LoRa signal for example. \\
+We chose to use a 20x4 I$^2$C LCD Display.
+\begin{itemize}
+    \item Requires minimal cable connections (Only 4: Power, Ground, SDA \& SCL)
+    \item Fully compatible with Arduino with numerous up-to-date libraries.
+    \item Available in faculty inventory.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/components/lcd_display_20x4.png}
+         \caption{LCD}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/components/i2c_lcd_module.png}
+         \caption{I$_2$C Module*}
+    \end{subfigure}
+    \caption{LCD Display 20x4 with I$_2$C communication module}
+\end{figure}
+{\footnotesize * Module usually comes pre-soldered to the LCD display}
+
+\subsection{Architecture}
+Arduino wasn't really built to be a server really, so implementing one won't be the smoothest thing to do, no doubt we will be having too many moving parts that we need to build ourselves.
+
+\begin{itemize}
+    \item \textbf{\acrshort{wifi}}: Handle \acrshort{wifi} connection \& verify connection status regularly. It should also handle any errors while connecting or that can cause a disconnection from the \acrfull{ap}
+    \item \textbf{Storage}: Implement a way to easily fetch and write data to \& from the SD card. It should act like a \acrshort{db}.
+    \item \textbf{Clock}: We intend to log the data received from the nodes to keep a history of previous measurements, we will need to also keep track of the time when we received those data.
+    \item \textbf{\acrshort{http} handler}: Keep an eye on new \acrshort{http} connections and handle them. We will refer to this part as "server" or "application" from now on.
+    \item \textbf{LCD}: Handle LCD updates, which should be triggered when data changes.
+    \item \textbf{\acrshort{lora} Communication}
+\end{itemize}
+
+\textcolor{blue}{Keep in mind:} Before starting to code a project with this many moving parts, we should think about having only one source of truth, meaning that we should have only one place from where we can get information about something, for example, \acrshort{wifi} status. This concept is also known as having a \textbf{\textit{Single App Store}} or \textbf{\textit{Central App State}}. \\
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/architecture.png}
+    \caption{Central Architecture}
+\end{figure}
+
+\newcommand\dashto{\mathrel{
+  -\mkern-6mu{\to}\mkern-20mu{\color{white}\bullet}\mkern12mu
+}}
+
+\textcolor{red}{Legend:}
+\begin{itemize}
+    \item A $\longrightarrow$ B: A affects B (Change its value).
+    \item A $\dashto$ B: B reads from A.
+\end{itemize}
+
+
+\subsection{Implementation}
+
+\subsubsection{WiFi}
+Thanks to using MKR WiFi 1010, initiating a WiFi connection is straightforward, however, we should keep an eye on the connection status every few minutes or so in case of connection loss.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{images/central/wifi_flowchart.png}
+    \caption{WiFi implementation flowchart}
+\end{figure}
+
+\begin{code}
+\caption{WiFi first connection implementation}
+\begin{minted}{c++}
+#include <WiFiNINA.h>
+
+void setup() {
+    if (::WiFi.status() == WL_NO_MODULE) {
+    //  ^^ main namespace scope
+        errHalt(F("WiFi"), F("Module not found"));
+    }
+    String fv = ::WiFi.firmwareVersion();
+    Serial.print(F("Wifi Module detected, firmware version: "));
+    Serial.println(fv);
+    connect();
+}
+\end{minted}
+\end{code}
+
+\begin{code}
+\caption{WiFi connect implementation}
+\begin{minted}{c++}
+void connect() {
+    while (_status != WL_CONNECTED) {
+        _status = ::WiFi.begin(_ssid, _password);
+        delay(5000); // Wait up to 5s for connection to establish
+    }
+    local_ip = ::WiFi.localIP();
+}
+\end{minted}
+\end{code}
+
+\begin{code}
+\caption{WiFi loop implementation}
+\begin{minted}{c++}
+void loop() {
+    status = ::WiFi.status();
+    if (_status != WL_CONNECTED) {
+        connect();
+    }
+    delay(10 * 60 * 1000); // 10min
+}
+\end{minted}
+\end{code}
+
+This solution will work fine... until it won't! Once we will start adding other components to our systems like the storage or the server, it will brake our system because of the \verb|delay| function. \\
+The \verb|delay| function is a blocking function, meaning, while it is executing, it wouldn't allow anything else to run until it finishes, so for our case, for 10min, the Arduino will be stuck in the delay function, and wasting precious time \& processing power. \\
+Before going any further, we should find a way around this limitation.
+
+\subsubsection{Poll}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{images/central/poll_flowchart.png}
+    \caption{Poll implementation flowchart}
+\end{figure}
+
+We will be using this polling concept many times throughout our central implementation, so it is best to factor it into a C++ class. \\
+We can use Arduino's \verb|millis| function to get the number of milliseconds since the program started (Arduino power on).
+
+\begin{code}
+\caption{Poll implementation}
+\begin{minted}{c++}
+class Poll {
+    public:
+        uint32_t duration;
+    
+        Poll(uint32_t duration) : duration(duration) {};
+    
+        bool shouldExecute() {
+            return millis() > _last_executed_at + duration;
+        }
+    
+        void setExecuted() {
+            _last_executed_at = millis();
+        }
+    
+    private:
+        uint32_t _last_executed_at = 0; // 32bit unsigned int
+};
+\end{minted}
+\end{code}
+
+Now we can initiate an instance of our Poll class instead of a delay whenever we need to implement a recurring task.
+
+\begin{code}
+\caption{Poll usage example}
+\begin{minted}{c++}
+Poll _poll(60 * 1000); // 60_000ms = 1min
+if(_poll.shouldExecute()) { <---------------------- <-
+    _poll.setExecuted(); // Update execution time    ^
+    // Code to execute                               ^
+} // ----------------------------------------------> ^
+\end{minted}
+\end{code}
+
+\subsubsection{Storage}
+The storage program is very straightforward, we should only initiate the SD module connection on the Arduino's startup, however, there are some limitation that we should be aware of that concerns the FAT32 filesystem, which is the only filesystem supported by the default Arduino SD library. \\
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|p{9cm}|p{5cm}|}
+    \hline
+    Filesystem & Max. Path Length & Max. Filename Length \\
+    \hline
+    (*) Btrfs & No limit defined & 255 bytes \\
+    \hline
+    (*) ext2 & No limit defined & 255 bytes \\
+    \hline
+    (*) ext3 & No limit defined & 255 bytes \\
+    \hline
+    (*) ext4 & No limit defined & 255 bytes \\
+    \hline
+    (*) XFS & No limit defined & 255 bytes \\
+    \hline
+    (*) ZFS & No limit defined & 255 bytes \\
+    \hline
+    APFS & Unknown (**) & 255 UTF-8 characters \\
+    \hline
+    \rowcolor{red!25} FAT32 & 32,760 Unicode characters with each path component no more than 255 characters & 8.3 (255 UCS-2 code units with VFAT LFNs) \\
+    \hline
+    exFAT & 32,760 Unicode characters with each path component no more than 255 characters & 255 UTF-16 characters \\
+    \hline
+    NTFS & 32,767 Unicode characters with each path component (directory or filename) up to 255 characters long (MAX\_PATH) & 255 characters \\
+    \hline
+    \end{tabular}
+    \caption{Path and Filename Length Limitations for different file systems}
+\end{table}
+{\footnotesize * In Unix environments, PATH\_MAX with 4096 bytes and NAME\_MAX with 255 bytes are very common limitations for applications including the Shell. \\
+** Although not officially documented, when searching on the internet there is a limit with path names exceeding 1024 bytes. Users report warnings in Finder, the Shell, or apps about this behavior. }\\
+
+
+As stated by the above table, FAT32 has a very strict limit on the file name, where it can only have 8 characters maximum for the name and 3 others for the file extension.\\
+That already makes it hard for us since the default HTML file extension length is 4 characters (.html), we will also have a problem if we need to ever include an image file such as a JPEG (.jpeg) or something else, let alone the filenames which are limited to 8 characters maximum. \\
+
+We could try to find a way around these limitations with some fancy tricks, but  as the French proverb says: "Chercher midi à quatorze heures". \\
+
+We can use a 3rd party Arduino library \verb|SdFat.h| to do the heavy lifting for us. The usage is almost identical for the default Arduino one, except that for this library, we need to define a global variable to access the storage.
+
+\begin{code}
+    \begin{minted}{c++}
+SdFat sd;
+
+void setup() {
+    if (!sd.begin(SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SD_SCK_MHZ(50)))) {
+        // Throw an error and halt the program
+        errHalt(F("SD card"), F("Initialisation failed!")); 
+    }
+    Serial.println(F("SD Card initialized successfully!"));
+}
+    \end{minted}
+    \caption{SD card reader initialization}
+\end{code}
+
+For now, that is all that we need for the storage. Each time we need to read a file from the SD card, we can use the already initiated \verb|sd| variable.
+
+\subsubsection{Clock}
+We will use \href{www.worldtimeapi.org}{worldtimeapi.com}'s free API to get the current Unix time. This step should be executed only after already initializing the WiFi connection. \\
+The API returns either a JSON or simple text response, we can get the JSON and parse it the same way we used to parse payloads in our nodes using \verb|ArduinoJSON.h| library.\\
+We can also add a timer to refresh the time every 24 hours for example. this step is not really needed since Arduino can already keep a relatively precise time, but it won't hurt to add this step. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{images/central/clock_flowchart.png}
+    \caption{Clock implementation flowchart}
+\end{figure}
+
+Now getting the current Unix time at any moment is as simple as this simple equation
+$$
+t_{now} = t_{UnixTime} + \frac{millis() - t_{FetchedAt}}{1000}
+$$
+We should divide by 1000 to convert from milliseconds to seconds. \\
+We can encapsulate this code in a single function for ease of use. \\
+\begin{code}
+\caption{Clock time fetching implementation}
+\begin{minted}{c++}
+uint32_t _unix_timestamp = 0;
+const String _HOST_NAME = F("www.worldtimeapi.org");
+const String _PATH_NAME = F("/api/timezone/Europe/Paris");
+Poll _fetch_poll(24 * 60 * 60 * 1000); // 24 hours
+WiFiClient _wifi = WiFiClient();
+HttpClient _client = HttpClient(_wifi, _HOST_NAME);
+uint32_t _fetched_at = 0;
+
+void fetch() {
+    DynamicJsonDocument json(1024);
+    _client.get(_PATH_NAME);
+    int statusCode = _client.responseStatusCode();
+    if (statusCode < 200 || statusCode >= 300) return;
+    String response = _client.responseBody();
+    _client.stop();
+    DeserializationError error = deserializeJson(json, response.c_str());
+    if (error) return;
+    _unix_timestamp = json["unixtime"];
+     _fetched_at = millis();
+    _fetch_poll.setExecuted();
+}
+
+uint32_t time()  {
+    return _unix_timestamp + (millis() - _fetched_at) / 1000;
+}
+\end{minted}
+\end{code}
+
+\subsubsection{LoRa}
+We already implemented the LoRa module initialization code in the nodes section. However, we should implement two functions for receiving and parsing the payloads.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{images/central/lora_read_flowchart.png}
+    \caption{LoRa payload read flowchart}
+\end{figure}
+
+\begin{code}
+\begin{minted}{c++}
+void loop() {
+    if (rf95.available()) {
+        char buf[RH_RF95_MAX_MESSAGE_LEN];
+        uint8_t len = sizeof(buf); // Equal to RH_RF95_MAX_MESSAGE_LEN
+        if (!rf95.recv((uint8_t *)buf, &len)) {
+            Serial.println("LoRa receive failed");
+            return;
+        }
+        for (size_t i = 0; i < len; i++) {
+            if (buf[i] == '\n') {
+                parsePayload();
+                buffer = "";
+            } else {
+                buffer += buf[i];
+            }
+        }
+    }
+}
+\end{minted}
+\end{code}
+
+Payload parsing is straightforward, we should only deserialize the JSON data, and save it to the db file with the current Unix time as a \acrfull{csv} entry.
+
+\begin{code}
+\caption{LoRa payload parse implementation}
+\begin{minted}{c++}
+void parsePayload() {
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, buffer);
+    if (error) return;
+    const char *node = doc["node"];
+    const char *measure = doc["measure"];
+    double value = doc["value"];
+    File db = Storage::sd.open("db.csv", FILE_WRITE);
+    if (!db)
+        errHalt(F("SD Card"), F("DB file open failed"))
+    db.print(node);
+    db.print(",");
+    db.print(measure);
+    db.print(",");
+    db.print(value);
+    db.print(",");
+    db.println(Clock::time());
+    db.close();
+}
+\end{minted}
+\end{code}
+
+\subsubsection{Server}
+Now that we implemented everything, we can jump on to implementing the actual HTTP server. \\
+For the sake of not having to parse the verbose HTTP protocol request ourselves, we will be using an external library that will do the heavy lifting for us: \verb|aWOT.h|.\\
+The library is easy to use, we should just initialize it once by registering allowed routes and their handlers on startup and then we can pass HTTPServer requests to it to process.
+
+\begin{code}
+\caption{Server}
+\begin{minted}{c++}
+void setup() {
+    _server.begin();
+    _app.get("/api/db", &RequestHandlers::db);
+    _app.get(&RequestHandlers::staticFiles);
+}
+
+void loop() {
+    WiFiClient client = _server.available();
+    if (client.available()) {
+        _app.process(&client);
+        client.stop(); //  Force disconnect to free the queue
+    }
+}
+\end{minted}
+\caption{Server setup and loop implementations}
+\end{code}
+
+We register three handlers:
+\begin{itemize}
+    \item \textbf{/api/db}: This route will return the db file content
+    \item \textbf{Static files (website)}: Should look through the storage, if the file exists it should return its content
+\end{itemize}
+
+\begin{code}
+\begin{minted}{c++}
+namespace RequestHandlers {
+    void staticFiles(Request &req, Response &res) {
+        if (strlen(req.path()) == 1) {
+            return file(req, res, "/index.html");
+        }
+        return file(req, res, req.path());
+    }
+
+    void db(Request &req, Response &res) {
+        File file = Storage::sd.open("db.csv");
+        if (!file)
+            return;
+        while (file.available())
+            res.write(file.read());
+        file.close();
+        res.end();
+    }
+
+    void file(Request &req, Response &res, const char *filename) {
+        String filepath = Server::STATIC_FOLDER + filename;
+        if (!Storage::sd.exists(filepath)) {
+            res.sendStatus(404);
+            return;
+        }
+        File file = Storage::sd.open(filepath);
+        if (file.isDirectory()) {
+             res.sendStatus(403);
+            return;
+        }
+        const String *contentType = Server::fileContentType(&filepath);
+        if (contentType != NULL)
+            res.set("Content-Type", contentType->c_str());
+        while (file.available())
+            res.write(file.read());
+        res.end();
+        file.close();
+        return;
+    }
+}     
+\end{minted}
+\caption{Server requests handlers implementation}
+\end{code}
+
+\subsubsection{Main .ino file}
+After implementing all the above, we need to call each of these functions in our main Arduino .ino file.
+
+\begin{code}
+\begin{minted}{c++}
+#include "src/WiFi.h"
+#include "src/Server.h"
+#include "src/Clock.h"
+#include "src/Storage.h"
+#include "src/LCD.h"
+#include "src/Lora.h"
+
+const char *WiFi::_ssid = "TestNetwork";
+const char *WiFi::_password = "00000000";
+
+void setup()
+{
+    Serial.begin(115200);
+    LCD::setup();
+    Storage::setup();
+    Lora::setup();
+    WiFi::setup();
+    Server::setup();
+    Clock::fetch();
+}
+
+void loop() {
+    WiFi::loop();
+    Server::loop();
+    Clock::loop();
+    Lora::loop();
+}
+\end{minted}
+\caption{Main .ino file implementation}
+\end{code}
+
+
+That was the last part we had to implement in our server, we now should just copy the website files into the static folder on our SD card and insert it into the SD card Reader. 
