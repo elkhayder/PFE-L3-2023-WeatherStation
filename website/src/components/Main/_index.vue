@@ -134,7 +134,7 @@
             >
                EL KHAYDER Zakaria
             </a>
-            ,
+            <!-- ,
             <a
                class="hover:underline"
                href="https://www.linkedin.com/in/nouhailaoufaski"
@@ -149,7 +149,7 @@
                target="_blank"
             >
                FRIES Léo
-            </a>
+            </a> -->
          </h2>
          <h4 class="mt-2">Final year's project - L3 - 2022/2023</h4>
       </div>
